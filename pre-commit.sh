@@ -14,5 +14,9 @@
 #  - The R package 'devtools' is installed
 ######################################################################
 
+# Run tests
+exec Rscript -e "library(devtools)" -e "devtools::load_all()" \
+     -e "devtools::check()"
+
 exit
 
