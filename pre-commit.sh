@@ -33,9 +33,6 @@ fi
 exec Rscript -e "library(devtools)" -e "devtools::load_all()" \
      -e "devtools::check()"
 
-# Add unstaged and untracked files back in
-git reset --hard -q
-git clean -fd -q
-git stash pop --index -q
-
+# Make signal file for post-commit
+touch .commit
 exit 0
