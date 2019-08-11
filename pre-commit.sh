@@ -30,8 +30,16 @@ if [ "$OLD_STASH" = "$NEW_STASH" ]; then
 fi
 
 # Run tests
-exec Rscript -e "library(devtools)" -e "devtools::load_all()" \
-     -e "devtools::check()"
+STATUS= Rscript -e "library(devtools)" -e "devtools::load_all()" \
+        -e "devtools::check()"
+
+# Roll back stash if tests exit nonzero
+if [ "$STATUS" -ne 0 ]; then
+    git reset --hard -q
+    git clean -fd -q
+    git stash pop -q
+    exit $STATUS
+fi
 
 # Make signal file for post-commit
 touch .commit
