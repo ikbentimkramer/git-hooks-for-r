@@ -1,20 +1,13 @@
 #!/bin/bash
 
 ######################################################################
-## filename: test-pre-commit.sh
-## description: Tests for pre-commit.sh
+## filename: tests.sh
+## description: Tests for git hooks for R
 ## arguments: 
 ## author: Tim Kramer
 ######################################################################
 
-######################################################################
-# This scripts assumes the following:
-#  - R is installed
-#  - Rscript is in $PATH
-#  - The R package 'devtools' is installed
-######################################################################
-
-# Set up test environment
+## Set up test environment
 hookscriptdir="$PWD"
 tempdir="/tmp/test.$(date +%s)"
 mkdir $tempdir
@@ -53,11 +46,11 @@ ln -s "$hookscriptdir/pre-commit.sh" ./.git/hooks/pre-commit
 ln -s "$hookscriptdir/post-commit.sh" ./.git/hooks/post-commit
 
 
+# Run tests ##########################################################
 testerrors=0
-# Run tests
 
 echo "--- When a commit is empty, it should: ---"
-# Test setup
+## Test setup
 OLDSTASH=$(git rev-parse -q --verify refs/stash)
 OLDCOMMIT=$(git rev-parse -q --verify refs/heads/master)
 git commit --allow-empty -m "asdsad" > "$tempdir/stdout.log" 2>&1
@@ -65,7 +58,7 @@ NEWSTASH=$(git rev-parse -q --verify refs/stash)
 NEWCOMMIT=$(git rev-parse -q --verify refs/heads/master)
 MATCHCOUNT=$(grep -F "Pre-commit: no changes to test" -c "$tempdir/stdout.log")
 
-#Testing
+## Testing
 # not leave a stash
 if [ "$OLDSTASH" = "$NEWSTASH" ]; then
     TEST1="OK"
@@ -88,12 +81,12 @@ else
     (( testerrors++ ))
 fi
 
-# Reporting
+## Reporting
 echo "    not leave a stash ... $TEST1"
 echo "    continue to commit ... $TEST2"
 echo "    report 'Pre-commit: no changes to test' ... $TEST3"
 
-# Test teardown
+## Test teardown
 git reset --hard -q "$OLDCOMMIT"
 rm "$tempdir/stdout.log"
 OLDSTASH=""
@@ -107,7 +100,7 @@ TEST3=""
 
 
 echo "--- When a commit is nonempty, but tests fail, it should ---"
-# Test setup
+## Test setup
 OLDSTASH=$(git rev-parse -q --verify refs/stash)
 OLDCOMMIT=$(git rev-parse -q --verify refs/heads/master)
 echo "test_that('This should fail', fail())" > ./tests/testthat/test-mock.R
@@ -141,12 +134,12 @@ else
     (( testerrors++ ))
 fi
 
-# Reporting
+## Reporting
 echo "    report 'Pre-commit: tests failed; aborting commit' ... $TEST1"
 echo "    abort commit ... $TEST2"
 echo "    not leave a stash ... $TEST3"
 
-# Test teardown
+## Test teardown
 git reset --hard -q "$OLDCOMMIT"
 rm "$tempdir/stdout.log"
 OLDSTASH=""
@@ -160,7 +153,7 @@ TEST3=""
 
 
 echo "--- When a commit is nonempty and tests succeed, it should ---"
-# Test setup
+## Test setup
 OLDSTASH=$(git rev-parse -q --verify refs/stash)
 OLDCOMMIT=$(git rev-parse -q --verify refs/heads/master)
 echo "test_that('This should succeed', succeed())" > ./tests/testthat/test-mock.R
@@ -169,7 +162,7 @@ git commit -m "asdsad" > "$tempdir/stdout.log" 2>&1
 NEWSTASH=$(git rev-parse -q --verify refs/stash)
 NEWCOMMIT=$(git rev-parse -q --verify refs/heads/master)
 
-# Testing
+## Testing
 # not leave a stash
 if [ "$OLDSTASH" = "$NEWSTASH" ]; then
     TEST1="OK"
@@ -185,11 +178,11 @@ else
     (( testerrors++ ))
 fi
 
-# Reporting
+## Reporting
 echo "    not leave a stash ... $TEST1"
 echo "    continue to commit ... $TEST2"
 
-# Test teardown
+## Test teardown
 git reset --hard -q "$OLDCOMMIT"
 OLDSTASH=""
 OLDCOMMIT=""
@@ -199,7 +192,7 @@ TEST1=""
 TEST2=""
 
 echo "--- When testing adds files, it should ---"
-# Test setup
+## Test setup
 OLDSTASH=$(git rev-parse -q --verify refs/stash)
 OLDCOMMIT=$(git rev-parse -q --verify refs/heads/master)
 Rscript -e "library(devtools)" -e "use_r('mock')" > /dev/null 2>&1
@@ -225,7 +218,7 @@ NEWSTASH=$(git rev-parse -q --verify refs/stash)
 NEWCOMMIT=$(git rev-parse -q --verify refs/heads/master)
 git diff-tree --no-commit-id --name-only -r "$NEWCOMMIT" > ../committed
 
-# Testing
+## Testing
 # not leave a stash
 if [ "$OLDSTASH" = "$NEWSTASH" ]; then
     TEST1="OK"
@@ -258,13 +251,13 @@ else
     (( testerrors++ ))
 fi
 
-# Reporting
+## Reporting
 echo "    not leave a stash ... $TEST1"
 echo "    continue to commit ... $TEST2"
 echo "    amend the files to the previous commit ... $TEST3"
 echo "    not amend non-generated files ... $TEST4"
 
-# Teardown
+## Teardown
 git reset --hard -q "$OLDCOMMIT"
 rm file1 # Just in case
 rm ../tocommit
@@ -279,6 +272,9 @@ TEST1=""
 TEST2=""
 TEST3=""
 TEST4=""
+
+# End of tests #######################################################
+
 
 # Clean up test environment
 rm -rf $tempdir
