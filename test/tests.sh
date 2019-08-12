@@ -42,8 +42,8 @@ cd "git.hooks.testenv"
 git init > /dev/null
 git add .
 git commit -m "Initial commit" > /dev/null
-ln -s "$hookscriptdir/pre-commit.sh" ./.git/hooks/pre-commit
-ln -s "$hookscriptdir/post-commit.sh" ./.git/hooks/post-commit
+ln -s "$hookscriptdir/hooks/pre-commit" ./.git/hooks/pre-commit
+ln -s "$hookscriptdir/hooks/post-commit" ./.git/hooks/post-commit
 
 
 # Run tests ##########################################################
@@ -110,6 +110,7 @@ NEWSTASH=$(git rev-parse -q --verify refs/stash)
 NEWCOMMIT=$(git rev-parse -q --verify refs/heads/master)
 MATCHCOUNT=$(grep -F "Pre-commit: tests failed; aborting commit" -c "$tempdir/stdout.log")
 
+## Testing
 # report "Pre-commit: tests failed; aborting commit"
 if [ "$MATCHCOUNT" -eq 1 ]; then
     TEST1="OK"
