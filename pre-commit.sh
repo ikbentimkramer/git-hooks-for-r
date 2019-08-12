@@ -12,6 +12,7 @@
 #  - R is installed
 #  - Rscript is in $PATH
 #  - The R package 'devtools' is installed
+# NOTE: This list is incomplete
 ######################################################################
 
 # In order to know if a stash has been made, we need to compare the
@@ -30,14 +31,18 @@ if [ "$OLD_STASH" = "$NEW_STASH" ]; then
 fi
 
 # Run tests
-STATUS= Rscript -e "library(devtools)" -e "devtools::load_all()" \
-        -e "devtools::check()"
+Rscript -e "library(devtools)" -e "devtools::load_all()" \
+        -e "devtools::check(document = TRUE)"
+
+# Capture Rscript exit status
+STATUS="$?"
 
 # Roll back stash if tests exit nonzero
-if [ "$STATUS" -ne 0 ]; then
+if [ "$STATUS" -ne 0 ]||[ "$STATUS" = "" ]; then
+    echo "Pre-commit: tests failed; aborting commit"
     git reset --hard -q
     git clean -fd -q
-    git stash pop -q
+    git stash pop -q --index
     exit $STATUS
 fi
 
